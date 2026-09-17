@@ -49,7 +49,8 @@ Issues = "https://github.com/nefin/nefin-python/issues"
 [project.optional-dependencies]
 excel = ["xlrd>=2.0", "openpyxl>=3.1"]
 test = ["pytest>=7.0", "pytest-cov>=4.0"]
-dev = ["nefin[excel,test]"]
+lint = ["ruff>=0.8"]
+dev = ["nefin[excel,test,lint]", "pre-commit>=3.5"]
 
 [tool.hatch.version]
 path = "src/nefin/__init__.py"
@@ -62,3 +63,25 @@ include = ["src", "tests", "README.md", "LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 96
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+]
+ignore = [
+    "E501", # line length is handled by the formatter, not worth failing CI over
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Parenthesized multi-context `with` (the usual SIM117 fix) needs Python 3.10+;
+# this project supports 3.9, so nested `with` blocks in tests are intentional.
+"tests/*" = ["E501", "SIM117"]

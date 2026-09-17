@@ -16,12 +16,11 @@ from __future__ import annotations
 
 import re
 from functools import wraps
-from typing import Optional
 
 import pandas as pd
 
 from . import core
-from .core import NefinDownloadError, README_URL
+from .core import README_URL, NefinDownloadError
 from .registry import COST_OF_EQUITY_SECTORS, PORTFOLIO_SORTS, SHORT_INTEREST_METRICS
 
 
@@ -47,10 +46,10 @@ def _reraise_with_context(func):
     return wrapper
 
 
-def _ymd_to_date(df: pd.DataFrame, *, year="year", month="month", day="day") -> pd.DatetimeIndex:
-    return pd.DatetimeIndex(
-        pd.to_datetime(dict(year=df[year], month=df[month], day=df[day]))
-    )
+def _ymd_to_date(
+    df: pd.DataFrame, *, year="year", month="month", day="day"
+) -> pd.DatetimeIndex:
+    return pd.DatetimeIndex(pd.to_datetime(dict(year=df[year], month=df[month], day=df[day])))
 
 
 # ---------------------------------------------------------------------------
@@ -126,8 +125,8 @@ def _load_cost_of_equity_sector(sector: str, *, use_cache: bool) -> pd.DataFrame
 
 @_reraise_with_context
 def load_cost_of_equity(
-    sector: Optional[str] = None, *, use_cache: bool = True
-) -> "pd.DataFrame | dict[str, pd.DataFrame]":
+    sector: str | None = None, *, use_cache: bool = True
+) -> pd.DataFrame | dict[str, pd.DataFrame]:
     """Load NEFIN's monthly implied cost of equity by sector.
 
     Values are annualized rates in percent (e.g. ``16.32`` means 16.32%/yr),
@@ -355,8 +354,7 @@ def load_short_interest(
     """
     if metric == "all":
         frames = [
-            _load_short_interest_metric(m, use_cache=use_cache)
-            for m in SHORT_INTEREST_METRICS
+            _load_short_interest_metric(m, use_cache=use_cache) for m in SHORT_INTEREST_METRICS
         ]
         merged = frames[0]
         for frame in frames[1:]:

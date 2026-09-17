@@ -29,16 +29,16 @@ pip install "nefin[excel]"
 
 ```python
 nd.load_risk_factors()
-nd.load_cost_of_equity(sector="consumer")          # or sector=None -> dict[str, DataFrame]
+nd.load_cost_of_equity(sector="consumer")  # or sector=None -> dict[str, DataFrame]
 nd.load_spot_rate_curve()
-nd.load_volatility_index()                          # ivol_br
-nd.load_risk_aversion()                              # requires nefin[excel]
-nd.load_variance_premium()                           # requires nefin[excel]
+nd.load_volatility_index()  # ivol_br
+nd.load_risk_aversion()  # requires nefin[excel]
+nd.load_variance_premium()  # requires nefin[excel]
 nd.load_dividend_yield()
 nd.load_loan_fees()
-nd.load_portfolios(sort_by="size", n=3)               # requires nefin[excel]
-nd.load_short_interest(metric="short_interest")       # metric="all" -> merged on date
-nd.load_illiquidity_index()                           # raises NotImplementedError: not yet published by NEFIN
+nd.load_portfolios(sort_by="size", n=3)  # requires nefin[excel]
+nd.load_short_interest(metric="short_interest")  # metric="all" -> merged on date
+nd.load_illiquidity_index()  # raises NotImplementedError: not yet published by NEFIN
 
 # escape hatch for anything not yet wrapped
 nd.load_csv("risk-factors", "nefin_factors")
@@ -65,8 +65,11 @@ instead of a bare `requests`/`pandas` traceback. Bad arguments (unknown
 ## Development
 
 ```bash
-pip install -e ".[dev]"   # test + excel extras
+pip install -e ".[dev]"   # test + excel + lint extras
 pytest
+ruff check .        # lint
+ruff format .       # format
+pre-commit install  # run ruff automatically on every commit
 ```
 
 ## Releasing to PyPI

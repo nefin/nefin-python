@@ -80,7 +80,9 @@ def test_load_risk_factors_schema_and_values():
 
 
 def test_load_cost_of_equity_single_sector():
-    with patch("nefin.core.requests.get", return_value=_mock_response(COST_OF_EQUITY_CSV)) as get:
+    with patch(
+        "nefin.core.requests.get", return_value=_mock_response(COST_OF_EQUITY_CSV)
+    ) as get:
         df = nd.load_cost_of_equity(sector="consumer")
 
     assert "consumer.csv" in get.call_args[0][0]
@@ -108,8 +110,13 @@ def test_load_spot_rate_curve_schema():
     with patch("nefin.core.requests.get", return_value=_mock_response(SPOT_RATE_CURVE_CSV)):
         df = nd.load_spot_rate_curve()
     assert list(df.columns) == [
-        "maturity_1m", "maturity_2m", "maturity_3m", "maturity_6m",
-        "maturity_1y", "maturity_3y", "maturity_5y",
+        "maturity_1m",
+        "maturity_2m",
+        "maturity_3m",
+        "maturity_6m",
+        "maturity_1y",
+        "maturity_3y",
+        "maturity_5y",
     ]
     assert df.index[0] == pd.Timestamp("2002-01-02")
 
@@ -162,9 +169,7 @@ def test_load_risk_aversion_requires_excel_engine_or_parses():
 
 
 def test_load_variance_premium_schema():
-    df_content = pd.DataFrame(
-        {"year": [2011], "month": [8], "day": [29], "premium": [-76.75]}
-    )
+    df_content = pd.DataFrame({"year": [2011], "month": [8], "day": [29], "premium": [-76.75]})
     with patch(
         "nefin.core.requests.get",
         return_value=_mock_excel_response({"Sheet1": df_content}),
