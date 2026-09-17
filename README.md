@@ -86,7 +86,9 @@ no API tokens stored as secrets). One-time setup, per environment
 2. In the GitHub repo settings, create matching `pypi` / `testpypi`
    [environments](https://docs.github.com/actions/deployment/targeting-different-environments/using-environments-for-deployment).
 
-To release: bump `__version__` in `src/nefin/__init__.py`, then publish a
-GitHub Release with a matching tag (e.g. `v0.2.0`) — this triggers
-`publish-pypi`. To dry-run against TestPyPI first, run the workflow manually
-from the Actions tab with `target: testpypi`.
+To release: move the `[Unreleased]` section of [CHANGELOG.md](CHANGELOG.md)
+under a new `## [X.Y.Z] - YYYY-MM-DD` heading, bump `__version__` in
+`src/nefin/__init__.py` to match, then publish a GitHub Release with a
+matching tag (e.g. `v0.2.0`) — this triggers `publish-pypi`. To dry-run
+against TestPyPI first, run the workflow manually from the Actions tab with
+`target: testpypi`.
