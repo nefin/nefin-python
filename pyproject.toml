@@ -88,10 +88,13 @@ ignore = [
 "tests/*" = ["E501", "SIM117"]
 
 [tool.mypy]
-# mypy itself only supports type-checking against 3.10+ targets even though
-# the package's runtime support (requires-python) goes back to 3.9 — the
-# sys.version_info branch in loaders.py handles the ParamSpec gap.
-python_version = "3.10"
+# Matches the Python version the "lint" CI job (and pre-commit) actually run
+# under. This is independent of requires-python (3.9+): newer numpy/pandas
+# stub files use syntax (e.g. PEP 695 `type` statements) that only parses
+# when python_version here is new enough, regardless of our own minimum
+# supported runtime — the sys.version_info branch in loaders.py handles the
+# actual ParamSpec gap for Python <3.10 at runtime.
+python_version = "3.12"
 packages = ["nefin"]
 mypy_path = "src"
 explicit_package_bases = true
