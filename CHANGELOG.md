@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - CI now also runs on Windows and macOS (at Python 3.9 and 3.13, the ends of
   the supported range) in addition to the full Python 3.9–3.13 matrix on
   Linux, to catch platform-specific path/cache issues.
+- `CITATION.cff` for academic citation (GitHub's "Cite this repository").
 
 ## [0.1.0] - 2026-09-17
 

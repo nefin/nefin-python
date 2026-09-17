@@ -93,6 +93,13 @@ pre-commit install  # run ruff + mypy automatically on every commit
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow, including how
 to add a new dataset loader.
 
+## Citing
+
+If `nefin` was useful in academic work, please cite it — see
+[CITATION.cff](CITATION.cff) (GitHub's "Cite this repository" button on this
+repo generates APA/BibTeX from it). Also cite NEFIN's own methodology for
+the underlying data: https://nefin.com.br/nefindata/README.md.
+
 ## Releasing to PyPI
 
 Publishing runs via `.github/workflows/publish.yml` using

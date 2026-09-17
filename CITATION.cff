@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, and cite NEFIN's own methodology for the underlying data (see https://nefin.com.br/nefindata/README.md)."
+title: "nefin: Pythonic loaders for NEFIN's public finance datasets"
+type: software
+authors:
+  - family-names: "Moraes"
+    given-names: "Kaue"
+repository-code: "https://github.com/nefin/nefin-python"
+url: "https://pypi.org/project/nefin/"
+license: MIT
+version: 0.1.0
+date-released: "2026-09-17"
+keywords:
+  - finance
+  - asset-pricing
+  - risk-factors
+  - brazil
+  - nefin
+  - pandas
