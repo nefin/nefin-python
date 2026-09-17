@@ -47,7 +47,7 @@ jobs:
         run: python -m pip install -e ".[dev]"
 
       - name: Run tests
-        run: pytest -v --cov=nefin --cov-report=term-missing
+        run: pytest -v
 
   build:
     runs-on: ubuntu-latest

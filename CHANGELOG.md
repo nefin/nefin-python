@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `mypy --strict` type checking, wired into CI and `pre-commit`. Public API
   parameters (`sector`, `sort_by`, `weighting`, `metric`) are now `Literal`
   types for IDE autocomplete and static validation.
+- Branch coverage enforced at 95%+ (`pytest-cov`, `--cov-fail-under=95`),
+  currently at 100%. New tests cover every error-handling branch in
+  `core.py` (cache I/O failures, missing Excel engine) and `loaders.py`
+  (schema-drift wrapping, all `load_portfolios`/`load_short_interest`
+  branches).
 
 ## [0.1.0] - 2026-09-17
 

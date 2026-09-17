@@ -150,6 +150,33 @@ def test_load_short_interest_single_metric():
     assert df.index[0] == pd.Timestamp("2012-11-07")
 
 
+def test_load_short_interest_all_merges_three_metrics():
+    days_to_cover_csv = b"date,average_days_to_cover\n2012-11-07,1.69\n"
+    loan_fee_csv = b"date,average_loan_fee\n2012-11-07,2.28\n"
+
+    responses_by_url = {
+        "average_short_interest.csv": SHORT_INTEREST_CSV,
+        "average_days_to_cover.csv": days_to_cover_csv,
+        "average_loan_fee.csv": loan_fee_csv,
+    }
+
+    def fake_get(url, **kwargs):
+        for suffix, content in responses_by_url.items():
+            if url.endswith(suffix):
+                return _mock_response(content)
+        raise AssertionError(f"unexpected URL {url}")
+
+    with patch("nefin.core.requests.get", side_effect=fake_get):
+        df = nd.load_short_interest(metric="all")
+
+    assert list(df.columns) == [
+        "average_short_interest",
+        "average_days_to_cover",
+        "average_loan_fee",
+    ]
+    assert df.loc["2012-11-07", "average_loan_fee"] == pytest.approx(2.28)
+
+
 def test_load_short_interest_invalid_metric():
     with pytest.raises(ValueError):
         nd.load_short_interest(metric="bogus")
@@ -201,6 +228,53 @@ def test_load_portfolios_size():
 def test_load_portfolios_invalid_sort_by():
     with pytest.raises(ValueError):
         nd.load_portfolios(sort_by="not-a-sort")
+
+
+def test_load_portfolios_industry():
+    df_content = pd.DataFrame(
+        {"year": [2001], "month": [1], "day": [2], "Industry_1": [0.01], "Industry_2": [0.02]}
+    )
+    with patch(
+        "nefin.core.requests.get",
+        return_value=_mock_excel_response({"Equally Weighted Returns": df_content}),
+    ):
+        df = nd.load_portfolios(sort_by="industry", n=7)
+    assert list(df.columns) == ["industry_1", "industry_2"]
+
+
+def test_load_portfolios_book_to_market_3_and_4():
+    df_content_3 = pd.DataFrame(
+        {"year": [2001], "month": [1], "day": [2], "BM1": [0.01], "BM2": [0.02], "BM3": [0.03]}
+    )
+    with patch(
+        "nefin.core.requests.get",
+        return_value=_mock_excel_response({"Equally Weighted Returns": df_content_3}),
+    ):
+        df3 = nd.load_portfolios(sort_by="book_to_market", n=3)
+    assert list(df3.columns) == ["bm_1", "bm_2", "bm_3"]
+
+    df_content_4 = pd.DataFrame(
+        {
+            "year": [2001],
+            "month": [1],
+            "day": [2],
+            "Size1_BM1": [0.01],
+            "Size1_BM2": [0.02],
+            "Size2_BM1": [0.03],
+            "Size2_BM2": [0.04],
+        }
+    )
+    with patch(
+        "nefin.core.requests.get",
+        return_value=_mock_excel_response({"Equally Weighted Returns": df_content_4}),
+    ):
+        df4 = nd.load_portfolios(sort_by="book_to_market", n=4)
+    assert list(df4.columns) == ["size_1_bm_1", "size_1_bm_2", "size_2_bm_1", "size_2_bm_2"]
+
+
+def test_load_portfolios_invalid_weighting():
+    with pytest.raises(ValueError, match="weighting"):
+        nd.load_portfolios(sort_by="size", n=3, weighting="not-a-weighting")
 
 
 def test_load_portfolios_invalid_n_for_sort_by():

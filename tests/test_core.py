@@ -1,6 +1,9 @@
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from nefin import core
+from nefin.core import NefinDownloadError
 
 
 def _mock_response(content: bytes) -> MagicMock:
@@ -52,3 +55,39 @@ def test_load_csv_refetches_when_cache_expired():
         core.load_csv("risk-factors", "nefin_factors", ttl=0)
         core.load_csv("risk-factors", "nefin_factors", ttl=0)
     assert get.call_count == 2
+
+
+def test_cache_read_oserror_raises_clear_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("NEFIN_CACHE_DIR", str(tmp_path))
+    cache_file = tmp_path / "risk-factors" / "nefin_factors.csv"
+    cache_file.parent.mkdir(parents=True)
+    cache_file.write_bytes(b"a,b\n1,2\n")
+
+    with patch("pathlib.Path.read_bytes", side_effect=OSError("permission denied")):
+        with pytest.raises(NefinDownloadError, match="Could not read cached file"):
+            core.load_csv("risk-factors", "nefin_factors")
+
+
+def test_cache_write_oserror_raises_clear_error(tmp_path, monkeypatch):
+    monkeypatch.setenv("NEFIN_CACHE_DIR", str(tmp_path))
+    csv_bytes = b"a,b\n1,2\n"
+
+    with patch("nefin.core.requests.get", return_value=_mock_response(csv_bytes)):
+        with patch("pathlib.Path.write_bytes", side_effect=OSError("disk full")):
+            with pytest.raises(NefinDownloadError, match="could not write it to the cache"):
+                core.load_csv("risk-factors", "nefin_factors")
+
+
+def test_load_excel_missing_engine_raises_clear_error():
+    xls_bytes = b"not a real xls file"
+    with patch("nefin.core.requests.get", return_value=_mock_response(xls_bytes)):
+        with patch("pandas.read_excel", side_effect=ImportError("no module named xlrd")):
+            with pytest.raises(NefinDownloadError, match="no Excel engine is installed"):
+                core.load_excel("portfolios", "3_portfolios_sorted_by_size")
+
+
+def test_load_excel_unparseable_raises_clear_error():
+    xls_bytes = b"not a real xls file"
+    with patch("nefin.core.requests.get", return_value=_mock_response(xls_bytes)):
+        with pytest.raises(NefinDownloadError, match="could not parse it as an Excel file"):
+            core.load_excel("portfolios", "3_portfolios_sorted_by_size")

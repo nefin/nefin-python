@@ -66,7 +66,7 @@ instead of a bare `requests`/`pandas` traceback. Bad arguments (unknown
 
 ```bash
 pip install -e ".[dev]"  # test + excel + lint extras
-pytest
+pytest               # runs with coverage on by default (fails under 95%)
 ruff check .        # lint
 ruff format .       # format
 mypy                # static type check (strict mode)

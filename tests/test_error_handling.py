@@ -48,6 +48,18 @@ def test_unparseable_content_raises_clear_error():
             nd.load_risk_factors(use_cache=False)
 
 
+def test_schema_drift_inside_a_loader_wraps_as_clear_error():
+    # Valid CSV that parses fine but is missing the columns load_risk_factors
+    # expects — simulates NEFIN silently renaming/dropping a column, which
+    # should surface as NefinDownloadError, not a raw pandas KeyError.
+    resp = MagicMock()
+    resp.content = b"Unexpected,Columns\n1,2\n"
+    resp.raise_for_status = MagicMock()
+    with patch("nefin.core.requests.get", return_value=resp):
+        with pytest.raises(NefinDownloadError, match="load_risk_factors"):
+            nd.load_risk_factors(use_cache=False)
+
+
 def test_portfolio_invalid_sort_by_is_plain_value_error():
     with pytest.raises(ValueError, match="sort_by"):
         nd.load_portfolios(sort_by="not-a-sort", use_cache=False)

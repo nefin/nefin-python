@@ -36,7 +36,7 @@ from .registry import (
 
 if sys.version_info >= (3, 10):
     from typing import ParamSpec
-else:
+else:  # pragma: no cover - exercised only on Python <3.10
     from typing_extensions import ParamSpec
 
 P = ParamSpec("P")
