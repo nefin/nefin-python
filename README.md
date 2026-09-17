@@ -1,5 +1,10 @@
 # nefin
 
+[![PyPI](https://img.shields.io/pypi/v/nefin.svg)](https://pypi.org/project/nefin/)
+[![Python versions](https://img.shields.io/pypi/pyversions/nefin.svg)](https://pypi.org/project/nefin/)
+[![CI](https://github.com/nefin/nefin-python/actions/workflows/ci.yml/badge.svg)](https://github.com/nefin/nefin-python/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Pandas-ready loaders for [NEFIN](https://nefin.com.br/nefindata/README.md)'s public
 finance datasets, so you can write:
 
