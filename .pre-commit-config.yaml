@@ -5,3 +5,15 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        pass_filenames: false
+        # Runs against the dev environment (pip install -e ".[dev]") rather than
+        # an isolated pre-commit env, since mypy needs pandas-stubs/types-requests
+        # installed alongside the actual pandas/requests versions in use.

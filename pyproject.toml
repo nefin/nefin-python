@@ -38,6 +38,7 @@ classifiers = [
 dependencies = [
     "pandas>=1.5",
     "requests>=2.28",
+    "typing_extensions>=4.5; python_version < '3.10'",
 ]
 
 [project.urls]
@@ -49,7 +50,7 @@ Issues = "https://github.com/nefin/nefin-python/issues"
 [project.optional-dependencies]
 excel = ["xlrd>=2.0", "openpyxl>=3.1"]
 test = ["pytest>=7.0", "pytest-cov>=4.0"]
-lint = ["ruff>=0.8"]
+lint = ["ruff>=0.8", "mypy>=1.13", "pandas-stubs>=2.0", "types-requests>=2.28"]
 dev = ["nefin[excel,test,lint]", "pre-commit>=3.5"]
 
 [tool.hatch.version]
@@ -85,3 +86,20 @@ ignore = [
 # Parenthesized multi-context `with` (the usual SIM117 fix) needs Python 3.10+;
 # this project supports 3.9, so nested `with` blocks in tests are intentional.
 "tests/*" = ["E501", "SIM117"]
+
+[tool.mypy]
+# mypy itself only supports type-checking against 3.10+ targets even though
+# the package's runtime support (requires-python) goes back to 3.9 — the
+# sys.version_info branch in loaders.py handles the ParamSpec gap.
+python_version = "3.10"
+packages = ["nefin"]
+mypy_path = "src"
+explicit_package_bases = true
+strict = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+# The registry's DATASETS catalog is deliberately loose (nested dicts of
+# mixed metadata for documentation purposes) — not worth a TypedDict.
+module = "nefin.registry"
+disallow_untyped_defs = false

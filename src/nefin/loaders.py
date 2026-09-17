@@ -15,20 +15,39 @@ the loader and the dataset involved, instead of a bare traceback from
 from __future__ import annotations
 
 import re
+import sys
+from collections.abc import Callable
 from functools import wraps
+from typing import Literal, TypeVar
 
 import pandas as pd
 
 from . import core
 from .core import README_URL, NefinDownloadError
-from .registry import COST_OF_EQUITY_SECTORS, PORTFOLIO_SORTS, SHORT_INTEREST_METRICS
+from .registry import (
+    COST_OF_EQUITY_SECTORS,
+    PORTFOLIO_SORTS,
+    SHORT_INTEREST_METRICS,
+    CostOfEquitySector,
+    PortfolioSortBy,
+    PortfolioWeighting,
+    ShortInterestMetric,
+)
+
+if sys.version_info >= (3, 10):
+    from typing import ParamSpec
+else:
+    from typing_extensions import ParamSpec
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
-def _reraise_with_context(func):
+def _reraise_with_context(func: Callable[P, T]) -> Callable[P, T]:
     """Wrap a loader so any unexpected failure is a clear NefinDownloadError."""
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         try:
             return func(*args, **kwargs)
         except NefinDownloadError:
@@ -47,7 +66,7 @@ def _reraise_with_context(func):
 
 
 def _ymd_to_date(
-    df: pd.DataFrame, *, year="year", month="month", day="day"
+    df: pd.DataFrame, *, year: str = "year", month: str = "month", day: str = "day"
 ) -> pd.DatetimeIndex:
     return pd.DatetimeIndex(pd.to_datetime(dict(year=df[year], month=df[month], day=df[day])))
 
@@ -100,8 +119,8 @@ def _parse_month_year(series: pd.Series) -> pd.DatetimeIndex:
     return pd.DatetimeIndex(pd.to_datetime(dict(year=year, month=month, day=1)))
 
 
-def _rename_cost_of_equity_columns(columns: pd.Index) -> dict:
-    renamed = {}
+def _rename_cost_of_equity_columns(columns: pd.Index) -> dict[str, str]:
+    renamed: dict[str, str] = {}
     for col in columns:
         match = _COST_OF_EQUITY_HORIZON_RE.match(col)
         if match:
@@ -109,7 +128,7 @@ def _rename_cost_of_equity_columns(columns: pd.Index) -> dict:
     return renamed
 
 
-def _load_cost_of_equity_sector(sector: str, *, use_cache: bool) -> pd.DataFrame:
+def _load_cost_of_equity_sector(sector: CostOfEquitySector, *, use_cache: bool) -> pd.DataFrame:
     raw = core.load_csv(
         "cost-of-equity",
         sector,
@@ -125,8 +144,8 @@ def _load_cost_of_equity_sector(sector: str, *, use_cache: bool) -> pd.DataFrame
 
 @_reraise_with_context
 def load_cost_of_equity(
-    sector: str | None = None, *, use_cache: bool = True
-) -> pd.DataFrame | dict[str, pd.DataFrame]:
+    sector: CostOfEquitySector | None = None, *, use_cache: bool = True
+) -> pd.DataFrame | dict[CostOfEquitySector, pd.DataFrame]:
     """Load NEFIN's monthly implied cost of equity by sector.
 
     Values are annualized rates in percent (e.g. ``16.32`` means 16.32%/yr),
@@ -267,7 +286,7 @@ _PORTFOLIO_SHEETS = {
 _SNAKE_CASE_BOUNDARY_RE = re.compile(r"(?<=[A-Za-z])(?=[0-9])")
 
 
-def _portfolio_filename(sort_by: str, n: int) -> str:
+def _portfolio_filename(sort_by: PortfolioSortBy, n: int) -> str:
     if sort_by not in PORTFOLIO_SORTS:
         raise ValueError(
             f"Unknown sort_by {sort_by!r}. Expected one of {sorted(PORTFOLIO_SORTS)}."
@@ -292,7 +311,11 @@ def _snake_case_portfolio_column(col: str) -> str:
 
 @_reraise_with_context
 def load_portfolios(
-    *, sort_by: str = "size", n: int = 3, weighting: str = "equal", use_cache: bool = True
+    *,
+    sort_by: PortfolioSortBy = "size",
+    n: int = 3,
+    weighting: PortfolioWeighting = "equal",
+    use_cache: bool = True,
 ) -> pd.DataFrame:
     """Load NEFIN's sorted equity portfolios (XLS-only, requires the ``excel`` extra).
 
@@ -330,7 +353,9 @@ def load_portfolios(
 # ---------------------------------------------------------------------------
 
 
-def _load_short_interest_metric(metric: str, *, use_cache: bool) -> pd.DataFrame:
+def _load_short_interest_metric(
+    metric: ShortInterestMetric, *, use_cache: bool
+) -> pd.DataFrame:
     filename = SHORT_INTEREST_METRICS[metric]
     raw = core.load_csv("short-interest", filename, use_cache=use_cache)
     df = raw.copy()
@@ -340,7 +365,7 @@ def _load_short_interest_metric(metric: str, *, use_cache: bool) -> pd.DataFrame
 
 @_reraise_with_context
 def load_short_interest(
-    *, metric: str = "short_interest", use_cache: bool = True
+    *, metric: ShortInterestMetric | Literal["all"] = "short_interest", use_cache: bool = True
 ) -> pd.DataFrame:
     """Load NEFIN's daily average short-interest metrics.
 

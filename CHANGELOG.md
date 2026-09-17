@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 - `ruff` for linting and formatting, wired into CI and `pre-commit`.
+- `mypy --strict` type checking, wired into CI and `pre-commit`. Public API
+  parameters (`sector`, `sort_by`, `weighting`, `metric`) are now `Literal`
+  types for IDE autocomplete and static validation.
 
 ## [0.1.0] - 2026-09-17
 

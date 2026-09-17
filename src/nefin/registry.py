@@ -8,7 +8,30 @@ only a handful of datasets and they change rarely.
 
 from __future__ import annotations
 
-COST_OF_EQUITY_SECTORS = (
+from typing import Literal
+
+# Keep these Literal aliases in sync with the tuples/dicts below by hand —
+# mypy can't derive a Literal from a runtime collection, so this is the
+# closest we get to a single source of truth for the valid string values.
+CostOfEquitySector = Literal[
+    "basic_products",
+    "construction",
+    "consumer",
+    "energy",
+    "finance",
+    "manufacturing",
+    "other",
+]
+
+PortfolioSortBy = Literal["size", "book_to_market", "momentum", "illiquidity", "industry"]
+
+PortfolioWeighting = Literal[
+    "equal", "value", "n_stocks", "market_value", "book_value", "book_to_market"
+]
+
+ShortInterestMetric = Literal["short_interest", "days_to_cover", "loan_fee"]
+
+COST_OF_EQUITY_SECTORS: tuple[CostOfEquitySector, ...] = (
     "basic_products",
     "construction",
     "consumer",
@@ -18,7 +41,7 @@ COST_OF_EQUITY_SECTORS = (
     "other",
 )
 
-PORTFOLIO_SORTS = {
+PORTFOLIO_SORTS: dict[PortfolioSortBy, dict[str, tuple[int, ...]]] = {
     "size": {"n": (3,)},
     "book_to_market": {"n": (3, 4)},
     "momentum": {"n": (3, 4)},
@@ -26,7 +49,7 @@ PORTFOLIO_SORTS = {
     "industry": {"n": (7,)},
 }
 
-SHORT_INTEREST_METRICS = {
+SHORT_INTEREST_METRICS: dict[ShortInterestMetric, str] = {
     "short_interest": "average_short_interest",
     "days_to_cover": "average_days_to_cover",
     "loan_fee": "average_loan_fee",

@@ -141,7 +141,8 @@ def load_csv(
         datafolder, filename, "csv", use_cache=use_cache, ttl=ttl, timeout=timeout
     )
     try:
-        return pd.read_csv(io.BytesIO(content), **read_csv_kwargs)
+        df: pd.DataFrame = pd.read_csv(io.BytesIO(content), **read_csv_kwargs)
+        return df
     except Exception as exc:
         raise NefinDownloadError(
             f"Downloaded {url} but could not parse it as CSV: {exc}. "
@@ -169,7 +170,8 @@ def load_excel(
         datafolder, filename, ext, use_cache=use_cache, ttl=ttl, timeout=timeout
     )
     try:
-        return pd.read_excel(io.BytesIO(content), **read_excel_kwargs)
+        df: pd.DataFrame = pd.read_excel(io.BytesIO(content), **read_excel_kwargs)
+        return df
     except ImportError as exc:
         raise NefinDownloadError(
             f"Downloaded {url} but no Excel engine is installed to read it: {exc}. "

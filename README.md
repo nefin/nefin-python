@@ -65,11 +65,12 @@ instead of a bare `requests`/`pandas` traceback. Bad arguments (unknown
 ## Development
 
 ```bash
-pip install -e ".[dev]"   # test + excel + lint extras
+pip install -e ".[dev]"  # test + excel + lint extras
 pytest
 ruff check .        # lint
 ruff format .       # format
-pre-commit install  # run ruff automatically on every commit
+mypy                # static type check (strict mode)
+pre-commit install  # run ruff + mypy automatically on every commit
 ```
 
 ## Releasing to PyPI
