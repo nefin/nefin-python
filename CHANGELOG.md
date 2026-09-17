@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `core.py` (cache I/O failures, missing Excel engine) and `loaders.py`
   (schema-drift wrapping, all `load_portfolios`/`load_short_interest`
   branches).
+- Requests now send an identifying `User-Agent`
+  (`nefin-python/<version> (+https://github.com/nefin/nefin-python)`)
+  instead of showing up as an anonymous `python-requests` hit against
+  nefin.com.br.
 
 ## [0.1.0] - 2026-09-17
 

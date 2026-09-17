@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 import os
 import time
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
@@ -31,6 +32,15 @@ README_URL = "https://nefin.com.br/nefindata/README.md"
 DEFAULT_CACHE_TTL_SECONDS = 7 * 24 * 3600
 
 DEFAULT_TIMEOUT_SECONDS = 30
+
+try:
+    _VERSION = version("nefin")
+except PackageNotFoundError:  # pragma: no cover - only when run from an uninstalled checkout
+    _VERSION = "0.0.0"
+
+# Identifies us to nefin.com.br (and lets them reach out if they'd rather we
+# throttled/stopped) instead of showing up as an anonymous python-requests hit.
+USER_AGENT = f"nefin-python/{_VERSION} (+https://github.com/nefin/nefin-python)"
 
 
 class NefinDownloadError(RuntimeError):
@@ -84,7 +94,7 @@ def _download_bytes(
             ) from exc
 
     try:
-        response = requests.get(url, timeout=timeout)
+        response = requests.get(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
         response.raise_for_status()
     except requests.exceptions.Timeout as exc:
         raise NefinDownloadError(

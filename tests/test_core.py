@@ -33,6 +33,14 @@ def test_load_csv_downloads_and_parses():
     assert df.shape == (2, 2)
 
 
+def test_requests_are_sent_with_an_identifying_user_agent():
+    csv_bytes = b"a,b\n1,2\n"
+    with patch("nefin.core.requests.get", return_value=_mock_response(csv_bytes)) as get:
+        core.load_csv("risk-factors", "nefin_factors", use_cache=False)
+    _, kwargs = get.call_args
+    assert kwargs["headers"]["User-Agent"].startswith("nefin-python/")
+
+
 def test_load_csv_uses_cache_on_second_call():
     csv_bytes = b"a,b\n1,2\n"
     with patch("nefin.core.requests.get", return_value=_mock_response(csv_bytes)) as get:
