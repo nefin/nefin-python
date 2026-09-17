@@ -30,11 +30,25 @@ jobs:
         run: mypy
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+        # Full version matrix only on Linux (cheap, fast). Windows/macOS are
+        # cross-checked at the two ends of the supported range — enough to
+        # catch platform-specific path/cache issues (cache_dir uses pathlib
+        # and NEFIN_CACHE_DIR) without tripling CI time.
+        include:
+          - os: windows-latest
+            python-version: "3.9"
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.9"
+          - os: macos-latest
+            python-version: "3.13"
     steps:
       - uses: actions/checkout@v4
 

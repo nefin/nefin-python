@@ -30,6 +30,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `CONTRIBUTING.md`, GitHub issue templates (bug report / feature request),
   and a PR template. `CHANGELOG.md`/`CONTRIBUTING.md` are now included in
   the sdist.
+- CI now also runs on Windows and macOS (at Python 3.9 and 3.13, the ends of
+  the supported range) in addition to the full Python 3.9–3.13 matrix on
+  Linux, to catch platform-specific path/cache issues.
 
 ## [0.1.0] - 2026-09-17
 
