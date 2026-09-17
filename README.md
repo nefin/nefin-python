@@ -62,6 +62,10 @@ with a message naming the URL/dataset involved and what to do about it,
 instead of a bare `requests`/`pandas` traceback. Bad arguments (unknown
 `sector`, `metric`, `sort_by`) raise a plain `ValueError`.
 
+Transient failures (connection errors, timeouts, 5xx/429 responses) are
+retried automatically with exponential backoff (up to 3 retries) before
+raising. Non-transient failures like 404s fail immediately.
+
 ## Development
 
 ```bash

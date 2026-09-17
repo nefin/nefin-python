@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   (`nefin-python/<version> (+https://github.com/nefin/nefin-python)`)
   instead of showing up as an anonymous `python-requests` hit against
   nefin.com.br.
+- Automatic retry with exponential backoff (up to 3 retries) on transient
+  network failures — connection errors, timeouts, and 5xx/429 responses.
+  Non-transient failures (404s, other 4xx) fail immediately without
+  retrying.
 
 ## [0.1.0] - 2026-09-17
 

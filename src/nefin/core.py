@@ -33,6 +33,12 @@ DEFAULT_CACHE_TTL_SECONDS = 7 * 24 * 3600
 
 DEFAULT_TIMEOUT_SECONDS = 30
 
+# Retries only cover genuinely transient failures (connection errors, timeouts,
+# 5xx/429 responses) with exponential backoff — not 404s or other 4xx, which
+# won't fix themselves on retry.
+_MAX_RETRIES = 3
+_BACKOFF_BASE_SECONDS = 0.5
+
 try:
     _VERSION = version("nefin")
 except PackageNotFoundError:  # pragma: no cover - only when run from an uninstalled checkout
@@ -69,6 +75,34 @@ def _cache_path(datafolder: str, filename: str, ext: str) -> Path:
     return cache_dir() / datafolder / f"{filename}.{ext}"
 
 
+def _is_retryable_http_error(exc: requests.exceptions.HTTPError) -> bool:
+    status = exc.response.status_code if exc.response is not None else None
+    return status is not None and (status >= 500 or status == 429)
+
+
+def _get_with_retries(url: str, *, timeout: float) -> requests.Response:
+    """GET with exponential-backoff retries on transient failures.
+
+    Non-transient failures (404s, other 4xx, malformed URLs, etc.) are
+    re-raised immediately on the first attempt — retrying those would just
+    waste time before _download_bytes turns them into a NefinDownloadError.
+    """
+    attempt = 0
+    while True:
+        try:
+            response = requests.get(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
+            response.raise_for_status()
+            return response
+        except requests.exceptions.HTTPError as exc:
+            if attempt >= _MAX_RETRIES or not _is_retryable_http_error(exc):
+                raise
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            if attempt >= _MAX_RETRIES:
+                raise
+        time.sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
+        attempt += 1
+
+
 def _download_bytes(
     datafolder: str,
     filename: str,
@@ -94,24 +128,26 @@ def _download_bytes(
             ) from exc
 
     try:
-        response = requests.get(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
-        response.raise_for_status()
+        response = _get_with_retries(url, timeout=timeout)
     except requests.exceptions.Timeout as exc:
         raise NefinDownloadError(
-            f"Timed out downloading {url} after {timeout}s. "
-            f"nefin.com.br may be slow or unreachable right now — try again, "
+            f"Timed out downloading {url} after {timeout}s (retried {_MAX_RETRIES} times). "
+            f"nefin.com.br may be slow or unreachable right now — try again later, "
             f"or pass a larger timeout=."
         ) from exc
     except requests.exceptions.HTTPError as exc:
         status = exc.response.status_code if exc.response is not None else "?"
+        retried_note = (
+            f" (retried {_MAX_RETRIES} times)" if _is_retryable_http_error(exc) else ""
+        )
         raise NefinDownloadError(
-            f"NEFIN returned HTTP {status} for {url}. "
+            f"NEFIN returned HTTP {status} for {url}{retried_note}. "
             f"The file may have been renamed or removed — check {README_URL} "
             f"for the current file list."
         ) from exc
     except requests.exceptions.RequestException as exc:
         raise NefinDownloadError(
-            f"Could not download {url}: {exc}. "
+            f"Could not download {url} (retried {_MAX_RETRIES} times): {exc}. "
             f"Check your network connection and that nefin.com.br is reachable."
         ) from exc
 

@@ -16,9 +16,11 @@ def _mock_http_error(status_code: int) -> MagicMock:
 
 
 def test_http_404_raises_clear_error():
-    with patch("nefin.core.requests.get", return_value=_mock_http_error(404)):
+    # 404 is not retryable, so this must fail on the first attempt.
+    with patch("nefin.core.requests.get", return_value=_mock_http_error(404)) as get:
         with pytest.raises(NefinDownloadError, match="404"):
             nd.load_risk_factors(use_cache=False)
+    assert get.call_count == 1
 
 
 def test_connection_error_raises_clear_error():
@@ -26,8 +28,9 @@ def test_connection_error_raises_clear_error():
         "nefin.core.requests.get",
         side_effect=requests.exceptions.ConnectionError("boom"),
     ):
-        with pytest.raises(NefinDownloadError, match="download"):
-            nd.load_risk_factors(use_cache=False)
+        with patch("nefin.core.time.sleep"):
+            with pytest.raises(NefinDownloadError, match="download"):
+                nd.load_risk_factors(use_cache=False)
 
 
 def test_timeout_raises_clear_error():
@@ -35,8 +38,62 @@ def test_timeout_raises_clear_error():
         "nefin.core.requests.get",
         side_effect=requests.exceptions.Timeout("boom"),
     ):
-        with pytest.raises(NefinDownloadError, match="Timed out"):
-            nd.load_risk_factors(use_cache=False)
+        with patch("nefin.core.time.sleep"):
+            with pytest.raises(NefinDownloadError, match="Timed out"):
+                nd.load_risk_factors(use_cache=False)
+
+
+def test_retries_on_connection_error_then_succeeds():
+    good_response = MagicMock()
+    good_response.content = b"a,b\n1,2\n"
+    good_response.raise_for_status = MagicMock()
+
+    with patch(
+        "nefin.core.requests.get",
+        side_effect=[
+            requests.exceptions.ConnectionError("boom"),
+            requests.exceptions.ConnectionError("boom again"),
+            good_response,
+        ],
+    ) as get:
+        with patch("nefin.core.time.sleep") as sleep:
+            df = nd.load_csv("risk-factors", "nefin_factors", use_cache=False)
+    assert get.call_count == 3
+    assert sleep.call_count == 2
+    assert list(df.columns) == ["a", "b"]
+
+
+def test_retries_on_5xx_then_succeeds():
+    good_response = MagicMock()
+    good_response.content = b"a,b\n1,2\n"
+    good_response.raise_for_status = MagicMock()
+
+    with patch(
+        "nefin.core.requests.get",
+        side_effect=[_mock_http_error(503), good_response],
+    ) as get:
+        with patch("nefin.core.time.sleep") as sleep:
+            nd.load_csv("risk-factors", "nefin_factors", use_cache=False)
+    assert get.call_count == 2
+    assert sleep.call_count == 1
+
+
+def test_exhausts_retries_and_raises_with_retry_count():
+    with patch(
+        "nefin.core.requests.get",
+        side_effect=requests.exceptions.ConnectionError("boom"),
+    ) as get:
+        with patch("nefin.core.time.sleep"):
+            with pytest.raises(NefinDownloadError, match="retried 3 times"):
+                nd.load_csv("risk-factors", "nefin_factors", use_cache=False)
+    assert get.call_count == 4  # initial attempt + 3 retries
+
+
+def test_does_not_retry_non_retryable_4xx():
+    with patch("nefin.core.requests.get", return_value=_mock_http_error(400)) as get:
+        with pytest.raises(NefinDownloadError, match="400"):
+            nd.load_csv("risk-factors", "nefin_factors", use_cache=False)
+    assert get.call_count == 1
 
 
 def test_unparseable_content_raises_clear_error():
