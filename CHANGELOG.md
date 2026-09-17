@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `CITATION.cff` for academic citation (GitHub's "Cite this repository").
 - Dependabot for weekly dependency update PRs (pip dev-dependencies grouped
   into one PR; GitHub Actions versions separately).
+- `pip-audit` as a CI job, checking every installed dependency (runtime +
+  dev) against the PyPA vulnerability database on every push/PR.
 
 ## [0.1.0] - 2026-09-17
 
