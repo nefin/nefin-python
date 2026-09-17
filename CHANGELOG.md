@@ -34,6 +34,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   the supported range) in addition to the full Python 3.9–3.13 matrix on
   Linux, to catch platform-specific path/cache issues.
 - `CITATION.cff` for academic citation (GitHub's "Cite this repository").
+- Dependabot for weekly dependency update PRs (pip dev-dependencies grouped
+  into one PR; GitHub Actions versions separately).
 
 ## [0.1.0] - 2026-09-17
 
