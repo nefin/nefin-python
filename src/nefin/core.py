@@ -16,6 +16,7 @@ Design notes:
 from __future__ import annotations
 
 import io
+import logging
 import os
 import time
 from importlib.metadata import PackageNotFoundError, version
@@ -24,6 +25,8 @@ from typing import Any
 
 import pandas as pd
 import requests
+
+logger = logging.getLogger("nefin")
 
 BASE_URL = "https://nefin.com.br/nefindata"
 README_URL = "https://nefin.com.br/nefindata/README.md"
@@ -92,14 +95,27 @@ def _get_with_retries(url: str, *, timeout: float) -> requests.Response:
         try:
             response = requests.get(url, timeout=timeout, headers={"User-Agent": USER_AGENT})
             response.raise_for_status()
+            if attempt > 0:
+                logger.debug("Succeeded on retry %d/%d for %s", attempt, _MAX_RETRIES, url)
             return response
         except requests.exceptions.HTTPError as exc:
             if attempt >= _MAX_RETRIES or not _is_retryable_http_error(exc):
                 raise
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            reason = f"HTTP {exc.response.status_code if exc.response is not None else '?'}"
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
             if attempt >= _MAX_RETRIES:
                 raise
-        time.sleep(_BACKOFF_BASE_SECONDS * (2**attempt))
+            reason = str(exc)
+        wait = _BACKOFF_BASE_SECONDS * (2**attempt)
+        logger.debug(
+            "Retrying %s after %s (attempt %d/%d, backing off %.1fs)",
+            url,
+            reason,
+            attempt + 1,
+            _MAX_RETRIES,
+            wait,
+        )
+        time.sleep(wait)
         attempt += 1
 
 
@@ -120,13 +136,16 @@ def _download_bytes(
         try:
             age = time.time() - path.stat().st_mtime
             if age < ttl:
+                logger.debug("Cache hit for %s (age %.0fs < ttl %.0fs)", url, age, ttl)
                 return path.read_bytes()
+            logger.debug("Cache stale for %s (age %.0fs >= ttl %.0fs)", url, age, ttl)
         except OSError as exc:
             raise NefinDownloadError(
                 f"Could not read cached file {path}: {exc}. "
                 f"Delete it manually or call the loader with use_cache=False to re-download."
             ) from exc
 
+    logger.debug("Downloading %s", url)
     try:
         response = _get_with_retries(url, timeout=timeout)
     except requests.exceptions.Timeout as exc:
@@ -157,6 +176,7 @@ def _download_bytes(
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
+            logger.debug("Cached %s to %s", url, path)
         except OSError as exc:
             raise NefinDownloadError(
                 f"Downloaded {url} but could not write it to the cache at {path}: {exc}. "

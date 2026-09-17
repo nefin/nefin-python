@@ -54,6 +54,18 @@ Downloads are cached to `~/.cache/nefin` (override with `NEFIN_CACHE_DIR`) for
 one week by default, since NEFIN updates its files at most weekly. Pass
 `use_cache=False` to any loader to force a fresh download.
 
+## Logging
+
+`nefin` logs cache hits/misses, downloads, and retries at `DEBUG` under the
+`"nefin"` logger. It's silent by default (no handlers attached), following
+standard library practice — opt in with:
+
+```python
+import logging
+logging.getLogger("nefin").setLevel(logging.DEBUG)
+logging.basicConfig()
+```
+
 ## Error handling
 
 Every failure — a network error, an HTTP error, a changed file format, a

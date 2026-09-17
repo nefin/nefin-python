@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   network failures — connection errors, timeouts, and 5xx/429 responses.
   Non-transient failures (404s, other 4xx) fail immediately without
   retrying.
+- Debug logging under the `"nefin"` logger for cache hits/misses, downloads,
+  cache writes, and retries. Silent by default (no handlers attached).
 
 ## [0.1.0] - 2026-09-17
 
