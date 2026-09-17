@@ -62,6 +62,7 @@ standard library practice — opt in with:
 
 ```python
 import logging
+
 logging.getLogger("nefin").setLevel(logging.DEBUG)
 logging.basicConfig()
 ```
@@ -88,6 +89,9 @@ ruff format .       # format
 mypy                # static type check (strict mode)
 pre-commit install  # run ruff + mypy automatically on every commit
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow, including how
+to add a new dataset loader.
 
 ## Releasing to PyPI
 

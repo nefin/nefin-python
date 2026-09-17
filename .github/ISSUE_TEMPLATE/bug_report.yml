@@ -1,0 +1,49 @@
+name: Bug report
+description: Something is broken — a loader raises an error, returns wrong data, or a dataset format changed
+labels: ["bug"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: nefin version
+      description: Output of `python -c "import nefin; print(nefin.__version__)"`
+    validations:
+      required: true
+  - type: dropdown
+    id: loader
+    attributes:
+      label: Which loader?
+      options:
+        - load_risk_factors
+        - load_cost_of_equity
+        - load_spot_rate_curve
+        - load_volatility_index
+        - load_risk_aversion
+        - load_variance_premium
+        - load_dividend_yield
+        - load_loan_fees
+        - load_portfolios
+        - load_short_interest
+        - load_illiquidity_index
+        - load_csv / load_excel (escape hatch)
+        - Not loader-specific
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: What happened
+      description: Minimal code to reproduce, the full error message/traceback (should be a `NefinDownloadError` naming a URL), and what you expected instead.
+      placeholder: |
+        import nefin as nd
+        nd.load_risk_factors()
+        # NefinDownloadError: ...
+    validations:
+      required: true
+  - type: textarea
+    id: raw-format
+    attributes:
+      label: Raw file format (if this looks like a NEFIN data change)
+      description: |
+        If you suspect NEFIN changed a file's columns/separator/dates, paste the header row:
+        `curl https://nefin.com.br/nefindata/<folder>/<file>.csv | head -3`

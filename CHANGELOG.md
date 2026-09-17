@@ -27,6 +27,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   retrying.
 - Debug logging under the `"nefin"` logger for cache hits/misses, downloads,
   cache writes, and retries. Silent by default (no handlers attached).
+- `CONTRIBUTING.md`, GitHub issue templates (bug report / feature request),
+  and a PR template. `CHANGELOG.md`/`CONTRIBUTING.md` are now included in
+  the sdist.
 
 ## [0.1.0] - 2026-09-17
 

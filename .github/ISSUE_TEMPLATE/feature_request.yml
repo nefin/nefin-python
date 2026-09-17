@@ -1,0 +1,18 @@
+name: Feature request
+description: A new dataset loader, a change to an existing loader's API, or a new capability
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What would you like?
+      description: |
+        For a new dataset loader, link to the file(s) on
+        https://nefin.com.br/nefindata/README.md if you have it.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why?
+      description: What are you trying to do that the current API doesn't support?
